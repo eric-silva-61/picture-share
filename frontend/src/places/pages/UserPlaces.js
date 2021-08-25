@@ -1,0 +1,41 @@
+import React from 'react';
+import { useParams } from 'react-router-dom';
+
+import PlaceList from '../components/PlaceList';
+
+const DUMMY_PLACES = [
+  {
+    id: 'p1',
+    title: 'Empire State Building',
+    description: 'Tall building in NYC',
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/2/25/Empire_State_Building_%28New_York%29_%2845240606631%29.jpg',
+    address: '20 W 34th St, New York, NY 10001',
+    location: {
+      lat: 40.7484405,
+      long: -73.9856644
+    },
+    creator: 'u1'
+  },
+  {
+    id: 'p2',
+    title: 'Empire State Building',
+    description: 'Tall building in NYC',
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/2/25/Empire_State_Building_%28New_York%29_%2845240606631%29.jpg',
+    address: '20 W 34th St, New York, NY 10001',
+    location: {
+      lat: 40.7484405,
+      long: -73.9856644
+    },
+    creator: 'u2'
+  }
+];
+
+const UserPlaces = (props) => {
+  const userId = useParams().userId;
+  const loadedPlaces = DUMMY_PLACES.filter((place) => place.creator === userId);
+  return <PlaceList items={loadedPlaces} />;
+};
+
+export default UserPlaces;
