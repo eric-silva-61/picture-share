@@ -10,17 +10,14 @@ router.get('/:id', controllers.getPlaceById);
 router.delete('/:id', controllers.deletePlace);
 router.patch(
   '/:id',
-  [
-    check('title').not().isEmpty(),
-    check('description').not().isLength({ min: 5 })
-  ],
+  [check('title').not().isEmpty(), check('description').isLength({ min: 5 })],
   controllers.updatePlace
 );
 router.post(
   '/',
   [
     check('title').not().isEmpty(),
-    check('description').not().isLength({ min: 5 }),
+    check('description').isLength({ min: 5 }),
     check('address').not().isEmpty()
   ],
   controllers.createPlace
