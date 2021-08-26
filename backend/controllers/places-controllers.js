@@ -1,6 +1,7 @@
 const HttpError = require('../models/http-error');
+const { v4: uuid } = require('uuid');
 
-const DUMMY_PLACES = [
+let DUMMY_PLACES = [
   {
     id: 'p1',
     title: 'Empire State Building',
@@ -25,7 +26,7 @@ const DUMMY_PLACES = [
       lat: 40.7516208,
       lng: -73.975502
     },
-    creator: 'u1'
+    creator: 'u2'
   }
 ];
 
@@ -42,14 +43,58 @@ const getPlaceById = (req, res, next) => {
 
 const getUserPlaces = (req, res, next) => {
   const userId = req.params.id;
-  const places = DUMMY_PLACES.find((p) => p.creator === userId);
+  const places = DUMMY_PLACES.filter((p) => p.creator === userId);
 
-  if (!places) {
+  if (!places || places.length === 0) {
     return next(new HttpError('Could not find places for user', 404));
   }
 
   res.json({ places });
 };
 
+const createPlace = (req, res, next) => {
+  const { title, description, address, coordinates, creator } = req.body;
+  const newPlace = {
+    id: uuid(),
+    title,
+    description,
+    address,
+    location: coordinates,
+    creator
+  };
+  DUMMY_PLACES.push(newPlace);
+  //DUMMY_PLACES.unshift(newPlace);
+  res.status(201).json({ place: newPlace });
+};
+
+const updatePlace = (req, res, next) => {
+  const placeId = req.params.id;
+  const { title, description } = req.body;
+
+  const placeIndex = DUMMY_PLACES.findIndex((p) => p.id === placeId);
+  const updatedPlace = { ...DUMMY_PLACES[placeIndex] };
+
+  if (placeIndex === -1) {
+    return next(new HttpError('No record for that id', 404));
+  }
+
+  updatedPlace.title = title;
+  updatedPlace.description = description;
+  DUMMY_PLACES[placeIndex] = updatedPlace;
+
+  res.status(200).json({ place: updatedPlace });
+};
+
+const deletePlace = (req, res, next) => {
+  const placeId = req.params.id;
+
+  DUMMY_PLACES = DUMMY_PLACES.filter((p) => p.id !== placeId);
+
+  res.status(200).json({ message: 'Place deleted' });
+};
+
 exports.getPlaceById = getPlaceById;
 exports.getUserPlaces = getUserPlaces;
+exports.createPlace = createPlace;
+exports.updatePlace = updatePlace;
+exports.deletePlace = deletePlace;
