@@ -1,4 +1,6 @@
 const HttpError = require('../models/http-error');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const { validationResult } = require('express-validator');
 const User = require('../models/user');
@@ -30,10 +32,17 @@ const signUp = async (req, res, next) => {
     return next(new HttpError('User already exist', 422));
   }
 
+  let hashedPW;
+  try {
+    hashedPW = await bcrypt.hash(password, 12);
+  } catch (error) {
+    return next(new HttpError('Could not create user please try again', 500));
+  }
+
   const newUser = new User({
     name,
     email,
-    password,
+    password: hashedPW,
     imageUrl: req.file.path.replace(/\\/g, '/'),
     places: []
   });
@@ -44,9 +53,23 @@ const signUp = async (req, res, next) => {
     return next(new HttpError(`Failed to create user (${error.message})`, 500));
   }
 
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: newUser.id, email: newUser.email },
+      'secret_dont_share',
+      {
+        expiresIn: '1h'
+      }
+    );
+  } catch (error) {
+    return next(new HttpError(`Failed to create user (${error.message})`, 500));
+  }
+
   res.status(201).json({
-    message: 'user created',
-    user: newUser.toObject({ getters: true })
+    userId: newUser.id,
+    email: newUser.email,
+    token
   });
 };
 
@@ -60,17 +83,39 @@ const login = async (req, res, next) => {
     return next(new HttpError('Invalid user', 500));
   }
 
-  if (user.password !== password) {
+  let isValidPW = false;
+  try {
+    isValidPW = await bcrypt.compare(password, user.password);
+  } catch (error) {
+    return next(
+      new HttpError(
+        'Could not log you in, check credentials and try again',
+        500
+      )
+    );
+  }
+
+  if (!isValidPW) {
     return next(new HttpError('Incorrect password', 401));
   }
+
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: user.id, email: user.email },
+      'secret_dont_share',
+      {
+        expiresIn: '1h'
+      }
+    );
+  } catch (error) {
+    return next(new HttpError(`Failed to login (${error.message})`, 500));
+  }
+
   res.status(200).json({
-    message: 'Logged in',
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      imageUrl: user.imageUrl
-    }
+    userId: user.id,
+    email: user.email,
+    token
   });
 };
 
