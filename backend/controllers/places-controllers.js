@@ -111,22 +111,30 @@ const updatePlace = async (req, res, next) => {
 
   const placeId = req.params.id;
   const { title, description } = req.body;
-  let updatedPlace;
 
+  let updatedPlace;
   try {
-    updatedPlace = await Place.findOneAndUpdate(
-      { _id: placeId },
-      {
-        title,
-        description
-      },
-      { new: true }
-    );
+    updatedPlace = await Place.findById(placeId);
   } catch (error) {
     return next(
       new HttpError(`Failed to update place (${error.message})`, 500)
     );
   }
+  if (updatedPlace.creator.toString() !== req.userData.userId) {
+    return next(new HttpError(`Unauthorized edit (${error.message})`, 401));
+  }
+
+  updatedPlace.title = title;
+  updatedPlace.description = description;
+
+  try {
+    await updatedPlace.save();
+  } catch (error) {
+    return next(
+      new HttpError(`Failed to update place (${error.message})`, 401)
+    );
+  }
+
   res.status(200).json({ place: updatedPlace.toObject({ getters: true }) });
 };
 
@@ -138,10 +146,19 @@ const deletePlace = async (req, res, next) => {
     place = await Place.findById(placeId).populate('creator');
 
     if (!place) {
-      next(
+      return next(
         new HttpError(
           `Could not find place for that id (${error.message})`,
           404
+        )
+      );
+    }
+
+    if (place.creator.id !== req.userData.userId) {
+      return next(
+        new HttpError(
+          `No authorized to delete this place (${error.message})`,
+          401
         )
       );
     }
@@ -154,8 +171,11 @@ const deletePlace = async (req, res, next) => {
     place.creator.places.pull(place);
     await place.creator.save({ session: sess });
     await sess.commitTransaction();
+
     fs.unlink(imagePath.replace(/\//g, '\\'), (err) => {
-      console.log(`Failed to delete file: ${err}`);
+      if (err) {
+        console.log(`Failed to delete file: ${err}`);
+      }
     });
   } catch (error) {
     return next(

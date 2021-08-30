@@ -80,7 +80,7 @@ const login = async (req, res, next) => {
   try {
     user = await User.findOne({ email: email });
   } catch (error) {
-    return next(new HttpError('Invalid user', 500));
+    return next(new HttpError('Invalid user', 403));
   }
 
   let isValidPW = false;
@@ -90,7 +90,7 @@ const login = async (req, res, next) => {
     return next(
       new HttpError(
         'Could not log you in, check credentials and try again',
-        500
+        403
       )
     );
   }
@@ -109,7 +109,7 @@ const login = async (req, res, next) => {
       }
     );
   } catch (error) {
-    return next(new HttpError(`Failed to login (${error.message})`, 500));
+    return next(new HttpError(`Failed to login (${error.message})`, 403));
   }
 
   res.status(200).json({
