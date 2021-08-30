@@ -122,7 +122,14 @@ const Auth = () => {
               validators={[VALIDATOR_REQUIRE()]}
             />
           )}
-          {!isLogin && <ImageUpload center id="image" onInput={inputHandler} />}
+          {!isLogin && (
+            <ImageUpload
+              center
+              id="image"
+              onInput={inputHandler}
+              errorText="Please provide an image"
+            />
+          )}
           <Input
             id="email"
             element="input"

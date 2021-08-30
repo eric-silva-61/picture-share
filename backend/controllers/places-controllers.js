@@ -1,3 +1,4 @@
+const fs = require('fs');
 const HttpError = require('../models/http-error');
 const { v4: uuid } = require('uuid');
 const { validationResult } = require('express-validator');
@@ -56,7 +57,7 @@ const createPlace = async (req, res, next) => {
     return next(new HttpError('Invalid inputs', 422));
   }
 
-  const { title, description, address, imageUrl, creator } = req.body;
+  const { title, description, address, creator } = req.body;
   let coordinates;
 
   try {
@@ -69,8 +70,7 @@ const createPlace = async (req, res, next) => {
     title,
     description,
     address,
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Harrison_MN_sta_house_jeh.JPG/1920px-Harrison_MN_sta_house_jeh.JPG',
+    imageUrl: req.file.path.replace(/\\/g, '/'),
     location: coordinates,
     creator
   });
@@ -146,12 +146,17 @@ const deletePlace = async (req, res, next) => {
       );
     }
 
+    const imagePath = place.imageUrl;
+
     const sess = await mongoose.startSession();
     sess.startTransaction();
     await place.remove({ session: sess });
     place.creator.places.pull(place);
     await place.creator.save({ session: sess });
     await sess.commitTransaction();
+    fs.unlink(imagePath.replace(/\//g, '\\'), (err) => {
+      console.log(`Failed to delete file: ${err}`);
+    });
   } catch (error) {
     return next(
       new HttpError(`Failed to delete place (${error.message})`, 500)

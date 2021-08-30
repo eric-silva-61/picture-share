@@ -22,7 +22,7 @@ const signUp = async (req, res, next) => {
     return next(new HttpError('Invalid inputs', 422));
   }
 
-  const { name, email, password, imageUrl } = req.body;
+  const { name, email, password } = req.body;
 
   // check if exists
   const user = await User.findOne({ email: email });
@@ -34,8 +34,7 @@ const signUp = async (req, res, next) => {
     name,
     email,
     password,
-    imageUrl:
-      'https://i.pinimg.com/originals/72/c9/8e/72c98e0877a6d3f90355fb79807cf56a.png',
+    imageUrl: req.file.path.replace(/\\/g, '/'),
     places: []
   });
 

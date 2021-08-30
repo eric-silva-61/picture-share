@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
 //const bodyParser = require('body-parser');
@@ -9,6 +11,8 @@ const usersRoutes = require('./routes/users-routes');
 const app = express();
 
 app.use(express.json());
+
+app.use('/uploads/images', express.static(path.join('uploads', 'images')));
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -28,7 +32,15 @@ app.use((req, res, next) => {
   throw new HttpError('Route does not exist', 404);
 });
 
+// general error handler
 app.use((error, req, res, next) => {
+  if (req.file) {
+    fs.unlink(req.file.path, (err) => {
+      if (err) {
+        console.log(`File deletion error: ${err}`);
+      }
+    });
+  }
   if (res.headerSent) {
     return next(error);
   }
