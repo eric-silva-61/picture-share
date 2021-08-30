@@ -5,16 +5,20 @@ import Input from '../../shared/components/FormElements/Input';
 import Button from '../../shared/components/FormElements/Button';
 import Card from '../../shared/components/UIElements/Card';
 import { useForm } from '../../shared/hooks/form-hooks';
+import ErrorModal from '../../shared/components/UIElements/ErrorModal';
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
 import {
   VALIDATOR_EMAIL,
   VALIDATOR_MINLENGTH,
   VALIDATOR_REQUIRE
 } from '../../shared/util/validators';
+import { useHttp } from '../../shared/hooks/http-hook';
 import './Auth.css';
 
 const Auth = () => {
   const authCtx = useContext(AuthContext);
   const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, error, sendRequest, clearError] = useHttp();
   const [formState, inputHandler, setFormData] = useForm(
     {
       email: {
@@ -29,10 +33,41 @@ const Auth = () => {
     false
   );
 
-  const authSubmitHandler = (event) => {
+  const authSubmitHandler = async (event) => {
     event.preventDefault();
-    console.log(formState.inputs);
-    authCtx.login();
+
+    if (isLogin) {
+      try {
+        const responseData = await sendRequest(
+          'http://localhost:5000/api/users/login',
+          'POST',
+          JSON.stringify({
+            email: formState.inputs.email.value,
+            password: formState.inputs.password.value
+          }),
+          {
+            'Content-Type': 'application/json'
+          }
+        );
+        authCtx.login(responseData.user.id);
+      } catch (error) {}
+    } else {
+      try {
+        const responseData = await sendRequest(
+          'http://localhost:5000/api/users/signup',
+          'POST',
+          JSON.stringify({
+            name: formState.inputs.name.value,
+            email: formState.inputs.email.value,
+            password: formState.inputs.password.value
+          }),
+          {
+            'Content-Type': 'application/json'
+          }
+        );
+        authCtx.login(responseData.user.id);
+      } catch (error) {}
+    }
   };
 
   const switchModeHandler = () => {
@@ -56,52 +91,55 @@ const Auth = () => {
         false
       );
     }
-
     setIsLogin((prevMode) => !prevMode);
   };
 
   return (
-    <Card className="authentication">
-      <h2>Login Required</h2>
-      <hr />
-      <form onSubmit={authSubmitHandler}>
-        {!isLogin && (
+    <React.Fragment>
+      <ErrorModal error={error} onClear={clearError} />
+      <Card className="authentication">
+        {isLoading && <LoadingSpinner asOverlay />}
+        <h2>Login Required</h2>
+        <hr />
+        <form onSubmit={authSubmitHandler}>
+          {!isLogin && (
+            <Input
+              id="name"
+              element="input"
+              type="text"
+              label="Name"
+              errorText="Please enter valid name"
+              onInput={inputHandler}
+              validators={[VALIDATOR_REQUIRE()]}
+            />
+          )}
           <Input
-            id="name"
+            id="email"
             element="input"
-            type="text"
-            label="Name"
-            errorText="Please enter valid name"
+            type="email"
+            label="E-mail"
+            errorText="Please enter valid email address"
             onInput={inputHandler}
-            validators={[VALIDATOR_REQUIRE()]}
+            validators={[VALIDATOR_EMAIL()]}
           />
-        )}
-        <Input
-          id="email"
-          element="input"
-          type="email"
-          label="E-mail"
-          errorText="Please enter valid email address"
-          onInput={inputHandler}
-          validators={[VALIDATOR_EMAIL()]}
-        />
-        <Input
-          id="password"
-          element="input"
-          type="password"
-          label="Password"
-          errorText="Please enter valid password (minimum length 5)"
-          onInput={inputHandler}
-          validators={[VALIDATOR_MINLENGTH(5)]}
-        />
-        <Button type="submit" disabled={!formState.isValid}>
-          {isLogin ? 'LOGIN' : 'SIGNUP'}
-        </Button>
-        <Button type="button" inverse onClick={switchModeHandler}>
-          SWITCH TO {isLogin ? 'SIGNUP' : 'LOGIN'}
-        </Button>
-      </form>
-    </Card>
+          <Input
+            id="password"
+            element="input"
+            type="password"
+            label="Password"
+            errorText="Please enter valid password (minimum length 5)"
+            onInput={inputHandler}
+            validators={[VALIDATOR_MINLENGTH(5)]}
+          />
+          <Button type="submit" disabled={!formState.isValid}>
+            {isLogin ? 'LOGIN' : 'SIGNUP'}
+          </Button>
+          <Button type="button" inverse onClick={switchModeHandler}>
+            SWITCH TO {isLogin ? 'SIGNUP' : 'LOGIN'}
+          </Button>
+        </form>
+      </Card>
+    </React.Fragment>
   );
 };
 

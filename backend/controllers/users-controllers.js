@@ -1,5 +1,4 @@
 const HttpError = require('../models/http-error');
-const { v4: uuid } = require('uuid');
 
 const { validationResult } = require('express-validator');
 const User = require('../models/user');
@@ -35,7 +34,8 @@ const signUp = async (req, res, next) => {
     name,
     email,
     password,
-    imageUrl,
+    imageUrl:
+      'https://i.pinimg.com/originals/72/c9/8e/72c98e0877a6d3f90355fb79807cf56a.png',
     places: []
   });
 
@@ -64,7 +64,15 @@ const login = async (req, res, next) => {
   if (user.password !== password) {
     return next(new HttpError('Incorrect password', 401));
   }
-  res.status(200).json({ token: uuid() });
+  res.status(200).json({
+    message: 'Logged in',
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      imageUrl: user.imageUrl
+    }
+  });
 };
 
 exports.getUsers = getUsers;

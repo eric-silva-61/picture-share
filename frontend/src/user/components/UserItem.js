@@ -10,12 +10,13 @@ const UserItem = (props) => {
       <Card className="user-item__content">
         <Link to={`/${props.user.id}/places`}>
           <div className="user-item__image">
-            <Avatar image={props.user.image} alt={props.user.name} />
+            <Avatar image={props.user.imageUrl} alt={props.user.name} />
           </div>
           <div className="user-item__info">
             <h2>{props.user.name}</h2>
             <h3>
-              {props.user.places} {props.user.places === 1 ? 'Place' : 'Places'}
+              {props.user.places.length}{' '}
+              {props.user.places.length === 1 ? 'Place' : 'Places'}
             </h3>
           </div>
         </Link>
