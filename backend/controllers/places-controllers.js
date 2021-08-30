@@ -19,8 +19,8 @@ const getPlaceById = async (req, res, next) => {
     );
   }
 
-  if (!place || places.length === 0) {
-    throw new HttpError('Could not find place for id', 404);
+  if (!place) {
+    return next(new HttpError('Could not find place for id', 404));
   }
 
   res.json({ place: place.toObject({ getters: true }) });

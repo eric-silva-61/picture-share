@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { useHistory } from 'react-router-dom';
 
 import { AuthContext } from '../../shared/context/auth-context';
 import Input from '../../shared/components/FormElements/Input';
@@ -17,6 +18,7 @@ import './Auth.css';
 
 const Auth = () => {
   const authCtx = useContext(AuthContext);
+  const history = useHistory();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, error, sendRequest, clearError] = useHttp();
   const [formState, inputHandler, setFormData] = useForm(
@@ -50,6 +52,7 @@ const Auth = () => {
           }
         );
         authCtx.login(responseData.user.id);
+        history.push('/');
       } catch (error) {}
     } else {
       try {
@@ -66,6 +69,7 @@ const Auth = () => {
           }
         );
         authCtx.login(responseData.user.id);
+        history.push('/');
       } catch (error) {}
     }
   };
