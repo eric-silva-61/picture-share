@@ -85,7 +85,7 @@ const createPlace = async (req, res, next) => {
   }
 
   if (!user) {
-    return next(new HttpError(`Invalid user (${error.message})`, 404));
+    return next(new HttpError(`Invalid user`, 404));
   }
 
   try {
@@ -121,7 +121,7 @@ const updatePlace = async (req, res, next) => {
     );
   }
   if (updatedPlace.creator.toString() !== req.userData.userId) {
-    return next(new HttpError(`Unauthorized edit (${error.message})`, 401));
+    return next(new HttpError(`Unauthorized edit`, 401));
   }
 
   updatedPlace.title = title;
@@ -155,12 +155,7 @@ const deletePlace = async (req, res, next) => {
     }
 
     if (place.creator.id !== req.userData.userId) {
-      return next(
-        new HttpError(
-          `No authorized to delete this place (${error.message})`,
-          401
-        )
-      );
+      return next(new HttpError(`No authorized to delete this place`, 401));
     }
 
     const imagePath = place.imageUrl;
@@ -186,8 +181,76 @@ const deletePlace = async (req, res, next) => {
   res.status(200).json({ message: 'Place deleted' });
 };
 
+const addLike = async (req, res, next) => {
+  const userId = req.userData.userId;
+  const placeId = req.params.id;
+  let place;
+
+  try {
+    place = await Place.findById(placeId).populate('creator').populate({
+      path: 'likes.creator',
+      select: 'name',
+      model: 'User'
+    });
+
+    if (!place) {
+      return next(new HttpError(`Could not find place for that id`, 404));
+    }
+
+    if (place.creator.id === userId) {
+      return next(new HttpError(`Can not like own place`, 405));
+    }
+
+    if (place.likes.find((l) => l.creator.id === userId)) {
+      return next(new HttpError(`Place already liked by user`, 405));
+    }
+    place.likes.push({ creator: userId });
+    await place.save();
+  } catch (error) {
+    return next(
+      new HttpError(`Failed to update place (${error.message})`, 500)
+    );
+  }
+
+  res.status(200).json({ place: place.toObject({ getters: true }) });
+};
+
+const deleteLike = async (req, res, next) => {
+  const userId = req.userData.userId;
+  const placeId = req.params.id;
+  let place;
+
+  try {
+    place = await Place.findById(placeId).populate('creator').populate({
+      path: 'likes.creator',
+      select: 'name',
+      model: 'User'
+    });
+
+    if (!place) {
+      return next(new HttpError(`Could not find place for that id`, 404));
+    }
+
+    const like = place.likes.find((l) => l.creator.id === userId);
+    if (!like) {
+      return next(new HttpError(`Place not liked by user`, 405));
+    }
+
+    place.likes.id(like.id).remove();
+    await place.save();
+  } catch (error) {
+    return next(
+      new HttpError(`Failed to update place (${error.message})`, 500)
+    );
+  }
+
+  res.status(200).json({ place: place.toObject({ getters: true }) });
+};
+
 exports.getPlaceById = getPlaceById;
 exports.getUserPlaces = getUserPlaces;
 exports.createPlace = createPlace;
 exports.updatePlace = updatePlace;
 exports.deletePlace = deletePlace;
+exports.addLike = addLike;
+exports.deleteLike = deleteLike;

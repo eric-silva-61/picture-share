@@ -12,6 +12,9 @@ router.get('/:id', controllers.getPlaceById);
 
 router.use(checkAuth);
 
+router.post('/:id/like', controllers.addLike);
+router.delete('/:id/like', controllers.deleteLike);
+
 router.post(
   '/',
   fileUpload.single('image'),
