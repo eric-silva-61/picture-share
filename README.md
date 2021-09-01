@@ -14,6 +14,7 @@ GoHere is a simple location sharing social media site, created to practice fulls
 #### Add/Edit Place
   User can upload a picture of a place to share, adding title, description and address.  Address is geocoded on the backend using Google geocoding API.
   Google Place API is utilized to display a map of the location from the geocoded location.
+  Users can like/unlike other users places
 
 ### Setup
 1. Create a MongoDB account
