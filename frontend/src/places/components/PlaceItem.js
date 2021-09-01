@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 
 import { AuthContext } from '../../shared/context/auth-context';
 import Card from '../../shared/components/UIElements/Card';
@@ -13,8 +13,17 @@ import './PlaceItem.css';
 const PlaceItem = (props) => {
   const authCtx = useContext(AuthContext);
   const [showMap, setShowMap] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isLoading, error, sendRequest, clearError] = useHttp();
+  const [isLikeLoading, likeError, sendLikeRequest, clearLikeError] = useHttp();
+
+  const isLikedByUser = props.likes.find(
+    (like) => like.creator === authCtx.userId
+  );
+  useEffect(() => {
+    setIsLiked(!!isLikedByUser);
+  }, [isLikedByUser]);
 
   const openMapHandler = () => {
     setShowMap(true);
@@ -46,9 +55,38 @@ const PlaceItem = (props) => {
     } catch (error) {}
   };
 
+  const unlikeHandler = async () => {
+    try {
+      await sendLikeRequest(
+        `${process.env.REACT_APP_BACKEND_URL}/places/${props.id}/like`,
+        'DELETE',
+        null,
+        {
+          Authorization: 'Bearer ' + authCtx.token
+        }
+      );
+      setIsLiked(false);
+    } catch (error) {}
+  };
+
+  const likeHandler = async () => {
+    try {
+      await sendLikeRequest(
+        `${process.env.REACT_APP_BACKEND_URL}/places/${props.id}/like`,
+        'POST',
+        null,
+        {
+          Authorization: 'Bearer ' + authCtx.token
+        }
+      );
+      setIsLiked(true);
+    } catch (error) {}
+  };
+
   return (
     <React.Fragment>
       <ErrorModal error={error} onClear={clearError} />
+      <ErrorModal error={likeError} onClear={clearLikeError} />
       <Modal
         show={showMap}
         onCancel={closeMapHandler}
@@ -92,6 +130,21 @@ const PlaceItem = (props) => {
             <h2>{props.title}</h2>
             <h3>{props.address}</h3>
             <p>{props.description}</p>
+            {authCtx.userId === props.creator ? (
+              <div class="place-item__like">
+                {props.likes.length}
+                {props.likes.length === 1 ? ' Like' : ' Likes'}
+              </div>
+            ) : (
+              <Button
+                size="small"
+                like
+                onClick={isLiked ? unlikeHandler : likeHandler}
+              >
+                {isLiked && 'Un-Like'}
+                {!isLiked && 'Like!'}
+              </Button>
+            )}
           </div>
           <div className="place-item__actions">
             <Button inverse onClick={openMapHandler}>
