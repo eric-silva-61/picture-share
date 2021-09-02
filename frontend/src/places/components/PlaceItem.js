@@ -141,8 +141,9 @@ const PlaceItem = (props) => {
                 like
                 onClick={isLiked ? unlikeHandler : likeHandler}
               >
-                {isLiked && 'Un-Like'}
-                {!isLiked && 'Like!'}
+                {isLikeLoading && <LoadingSpinner small />}
+                {!isLikeLoading && isLiked && 'Un-Like'}
+                {!isLikeLoading && !isLiked && 'Like!'}
               </Button>
             )}
           </div>
