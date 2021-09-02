@@ -11,9 +11,12 @@ GoHere is a simple location sharing social media site, created to practice fulls
 #### Signup/Login
   User information is stored in MongoDB (Atlas).  Passwords are encrypted using bcrypt.js.  Authentication is bearer token based using JSON Webtoken.
 
-#### Add/Edit Place
+#### Add/Edit/Delete Place
   User can upload a picture of a place to share, adding title, description and address.  Address is geocoded on the backend using Google geocoding API.
   Google Place API is utilized to display a map of the location from the geocoded location.
+
+#### Like Place
+  Users can like/unlike other users places.  Place owners can view a count of Likes.
 
 ### Setup
 1. Create a MongoDB account
