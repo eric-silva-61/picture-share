@@ -17,7 +17,7 @@ router.delete('/:id/like', controllers.deleteLike);
 
 router.post(
   '/',
-  fileUpload.single('image'),
+  fileUpload.array('image'),
   [
     check('title').not().isEmpty(),
     check('description').isLength({ min: 5 }),

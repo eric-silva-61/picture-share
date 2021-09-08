@@ -48,7 +48,11 @@ const NewPlace = () => {
       formData.append('title', formState.inputs.title.value);
       formData.append('description', formState.inputs.description.value);
       formData.append('address', formState.inputs.address.value);
-      formData.append('image', formState.inputs.image.value);
+      const fileList = formState.inputs.image.value;
+      for (let i = 0; i < fileList.length; i++) {
+        const file = fileList.item(i);
+        formData.append('image', file);
+      }
 
       await sendRequest(
         process.env.REACT_APP_BACKEND_URL + '/places',
