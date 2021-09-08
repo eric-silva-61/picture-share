@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
+import { Carousel } from 'react-responsive-carousel';
 
 import { AuthContext } from '../../shared/context/auth-context';
 import Card from '../../shared/components/UIElements/Card';
@@ -8,6 +9,7 @@ import Map from '../../shared/components/UIElements/Map';
 import { useHttp } from '../../shared/hooks/http-hook';
 import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
 import ErrorModal from '../../shared/components/UIElements/ErrorModal';
+import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import './PlaceItem.css';
 
 const PlaceItem = (props) => {
@@ -121,17 +123,31 @@ const PlaceItem = (props) => {
         {isLoading && <LoadingSpinner asOverlay />}
         <Card className="place-item__content">
           <div className="place-item__image">
-            <img
-              src={`${process.env.REACT_APP_ASSETS_URL}/${props.image}`}
+            <Carousel
+              showThumbs={false}
+              infiniteLoop={true}
+              dynamicHeight={false}
+            >
+              {props.images.map((i, index) => (
+                <div key={`image-${index}`}>
+                  <img
+                    src={`${process.env.REACT_APP_ASSETS_URL}/${i}`}
+                    alt={props.title}
+                  />
+                </div>
+              ))}
+            </Carousel>
+            {/* <img
+              src={`${process.env.REACT_APP_ASSETS_URL}/${props.images[0]}`}
               alt={props.title}
-            />
+            /> */}
           </div>
           <div className="place-item__info">
             <h2>{props.title}</h2>
             <h3>{props.address}</h3>
             <p>{props.description}</p>
             {authCtx.userId === props.creator ? (
-              <div class="place-item__like">
+              <div className="place-item__like">
                 {props.likes.length}
                 {props.likes.length === 1 ? ' Like' : ' Likes'}
               </div>
