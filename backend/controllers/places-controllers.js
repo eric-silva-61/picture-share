@@ -66,11 +66,13 @@ const createPlace = async (req, res, next) => {
     return next(error);
   }
 
+  const filePaths = req.files.map((f) => f.path.replace(/\\/g, '/'));
+
   const newPlace = new Place({
     title,
     description,
     address,
-    imageUrl: req.file.path.replace(/\\/g, '/'),
+    imageUrl: filePaths,
     location: coordinates,
     creator: req.userData.userId
   });

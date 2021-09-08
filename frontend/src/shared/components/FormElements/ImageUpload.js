@@ -23,7 +23,7 @@ const ImageUpload = (props) => {
   const pickedHandler = (event) => {
     let pickedFile;
     let fileIsValid = isValid;
-    if (event.target.files && event.target.files.length === 1) {
+    if (event.target.files && event.target.files.length > 0) {
       pickedFile = event.target.files[0];
       setFile(pickedFile);
       setIsValid(true);
@@ -32,7 +32,7 @@ const ImageUpload = (props) => {
       setIsValid(false);
       fileIsValid = false;
     }
-    props.onInput(props.id, pickedFile, fileIsValid);
+    props.onInput(props.id, event.target.files, fileIsValid);
   };
 
   const pickImageHandler = () => {
@@ -47,6 +47,7 @@ const ImageUpload = (props) => {
         type="file"
         accept=".jpg,.png,.jpeg"
         ref={filePickerRef}
+        multiple
         onChange={pickedHandler}
       />
       <div className={`image-upload ${props.center && 'center'}`}>
@@ -55,7 +56,7 @@ const ImageUpload = (props) => {
           {!previewUrl && <p>Please pick an image</p>}
         </div>
         <Button type="button" onClick={pickImageHandler}>
-          PICK IMAGE
+          PICK IMAGES
         </Button>
       </div>
       {!isValid && <p>{props.errorText}</p>}
